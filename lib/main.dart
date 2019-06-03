@@ -2,7 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:qr_reader/qr_reader.dart';
-
+import 'package:sellacious_app/webview.dart';
 void main() {
   runApp(new MyApp());
 }
@@ -16,7 +16,6 @@ class MyApp extends StatelessWidget {
       theme: ThemeData(
         primaryColor: Colors.lightGreen
       ),
-
     );
   }
 }
@@ -114,7 +113,11 @@ class _MyHomePageState extends State<MyHomePage> {
 
                   ),
                   onPressed: (){
-
+                    print(roomController.toString());
+                    var route = new MaterialPageRoute(
+                    builder: (BuildContext context)=>new WebviewScreen(url: roomController.text,),
+                  );
+                   Navigator.of(context).push(route);
                   },
                   splashColor: Colors.green,
                 )
@@ -139,6 +142,7 @@ class _MyHomePageState extends State<MyHomePage> {
                               .setHandlePermissions(true)
                               .setExecuteAfterPermissionGranted(true)
                               .scan();
+                          
                         });
                       },
                       tooltip: 'Reader the QRCode',
