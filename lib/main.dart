@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:barcode_scan/barcode_scan.dart';
 import 'package:flutter/services.dart';
 import 'webView.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'menu.dart';
 void main() => runApp(MyApp());
 
@@ -28,24 +29,67 @@ class MyHomePage extends StatefulWidget {
   _MyHomePageState createState() => _MyHomePageState();
 }
 
+enum AuthStatus{
+  notSignedIn,
+  signedIn,
+}
+
+
 
 class _MyHomePageState extends State<MyHomePage> {
 
+  AuthStatus authStatus = AuthStatus.notSignedIn;
   TextEditingController roomController;
+  String _flag ;
+  String result ;
+  final String savedUrl = 'first';
+
+
+
   @override
   void initState() {
     super.initState();
+    getUrl();
     roomController = new TextEditingController(text:"https://");
   }
 
-  String result ;
+  clearUrl() async{
+    final SharedPreferences prefs = await SharedPreferences.getInstance();
+    prefs.remove(savedUrl);
+  }
+
+
+
+  getUrl() async{
+    final SharedPreferences prefs = await SharedPreferences.getInstance();
+    String myUrl = prefs.getString("savedUrl") ?? 'null' ;
+    print("MY URL :$myUrl");
+    setState(() {
+      _flag = myUrl;
+    });
+
+    if(_flag != 'null'){
+      setState(() {
+        authStatus = AuthStatus.signedIn;
+      });
+    }
+  }
+
+
+
+  Future<bool> setUrl(String url) async{
+    final SharedPreferences prefs = await SharedPreferences.getInstance();
+    return prefs.setString("savedUrl",url);
+
+  }
 
 
   void _navigateToWebView(String url){
-
-    Navigator.push(context, MaterialPageRoute(builder: (context)=> MyWebView(url: url),
-    ),
+    setUrl(url);
+    var route = new MaterialPageRoute(
+        builder: (BuildContext context)=>new MyWebView(url: url,)
     );
+    Navigator.of(context).push(route);
     }
 
 
@@ -80,113 +124,123 @@ class _MyHomePageState extends State<MyHomePage> {
 
   @override
   Widget build(BuildContext context) {
-    return new Scaffold(
 
-      appBar: new AppBar(
-        title: const Text('Sellacious'),
-      ),
+    switch(authStatus){
+      case AuthStatus.notSignedIn:
 
-      body: new Center(
-          child: Stack(
-            children: <Widget>[
+        return new Scaffold(
 
-              Column(
-                mainAxisAlignment: MainAxisAlignment.center,
+          appBar: new AppBar(
+            title: const Text('Sellacious'),
+          ),
+
+          body: new Center(
+              child: Stack(
                 children: <Widget>[
 
-                  Form(
-                      child: Theme(
-                          data: new ThemeData(
-                              primaryColor: Colors.black,
-                              brightness: Brightness.light,
-                              primarySwatch: Colors.lightGreen,
-                              inputDecorationTheme: new InputDecorationTheme(
-                                  labelStyle: new TextStyle(
-                                      color: Colors.black,
-                                      fontSize: 20.0
+                  Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: <Widget>[
+
+                      Form(
+                          child: Theme(
+                              data: new ThemeData(
+                                  primaryColor: Colors.black,
+                                  brightness: Brightness.light,
+                                  primarySwatch: Colors.lightGreen,
+                                  inputDecorationTheme: new InputDecorationTheme(
+                                      labelStyle: new TextStyle(
+                                          color: Colors.black,
+                                          fontSize: 20.0
+                                      )
+                                  )
+                              ),
+                              child: Container(
+                                  padding: const EdgeInsets.all(40.0),
+                                  child: new Column(
+                                      crossAxisAlignment: CrossAxisAlignment.center,
+                                      children: <Widget>[
+                                        FlutterLogo(
+                                          size: 100.0,
+                                        ),
+                                        Padding(
+                                            padding:const EdgeInsets.symmetric(vertical: 16.0)
+                                        ),
+                                        new TextFormField(
+                                          controller: roomController,
+                                          decoration: new InputDecoration(
+                                            contentPadding: EdgeInsets.all(15.0),
+                                            border: new OutlineInputBorder(
+                                                borderSide: new BorderSide(color: Colors.black,width: 5.0)
+                                            ),
+                                            labelText: "Enter the Url",
+                                            labelStyle: new TextStyle(fontFamily: 'Lato'),
+                                          ),
+                                          keyboardType: TextInputType.text,
+                                          cursorColor: Colors.black,
+                                        ),
+                                        new Padding(
+                                            padding: const EdgeInsets.only(top: 15.0 )
+                                        ),
+                                        new Row(
+                                            mainAxisAlignment: MainAxisAlignment.center,
+                                            children: <Widget>[
+                                              new Padding(padding: EdgeInsets.only(left: 150.0)),
+                                              new MaterialButton(
+                                                height: 50.0,
+                                                minWidth: 50.0,
+                                                color: Colors.lightGreen,
+                                                textColor: Colors.black,
+                                                child: new Text(
+                                                  "Go",
+                                                  style: new TextStyle(fontFamily: 'Lato'),
+
+                                                ),
+                                                onPressed: (){
+                                                  _navigateToWebView(roomController.text);
+                                                },
+                                                splashColor: Colors.green,
+                                              )
+                                            ]
+                                        ),
+                                        new Padding(
+                                            padding: const EdgeInsets.only(top: 20.0)
+                                        ),
+                                        Text("Or Scan The QR code",
+                                          style: new TextStyle(fontSize: 20.0,color: Colors.black,fontWeight: FontWeight.bold,fontFamily:'Lato'),
+                                        ),
+                                        new Padding(
+                                            padding: const EdgeInsets.only(top: 20.0)
+                                        ),
+                                        new FloatingActionButton.extended(
+                                          label: Text("Scan"),
+                                          icon: Icon(Icons.settings_overscan),
+                                          onPressed: () {
+                                            _scanQR();
+                                          },
+                                          tooltip: 'Scan the QRCode',
+
+                                        ),
+                                      ]
                                   )
                               )
-                          ),
-                          child: Container(
-                              padding: const EdgeInsets.all(40.0),
-                              child: new Column(
-                                  crossAxisAlignment: CrossAxisAlignment.center,
-                                  children: <Widget>[
-                                    FlutterLogo(
-                                      size: 100.0,
-                                    ),
-                                    Padding(
-                                        padding:const EdgeInsets.symmetric(vertical: 16.0)
-                                    ),
-                                    new TextFormField(
-                                      controller: roomController,
-                                      decoration: new InputDecoration(
-                                        contentPadding: EdgeInsets.all(15.0),
-                                        border: new OutlineInputBorder(
-                                            borderSide: new BorderSide(color: Colors.black,width: 5.0)
-                                        ),
-                                        labelText: "Enter the Url",
-                                        labelStyle: new TextStyle(fontFamily: 'Lato'),
-                                      ),
-                                      keyboardType: TextInputType.text,
-                                      cursorColor: Colors.black,
-                                    ),
-                                    new Padding(
-                                        padding: const EdgeInsets.only(top: 15.0 )
-                                    ),
-                                    new Row(
-                                        mainAxisAlignment: MainAxisAlignment.center,
-                                        children: <Widget>[
-                                          new Padding(padding: EdgeInsets.only(left: 150.0)),
-                                          new MaterialButton(
-                                            height: 50.0,
-                                            minWidth: 50.0,
-                                            color: Colors.lightGreen,
-                                            textColor: Colors.black,
-                                            child: new Text(
-                                              "Go",
-                                              style: new TextStyle(fontFamily: 'Lato'),
-
-                                            ),
-                                            onPressed: (){
-                                              _navigateToWebView(roomController.text);
-                                            },
-                                            splashColor: Colors.green,
-                                          )
-                                        ]
-                                    ),
-                                    new Padding(
-                                        padding: const EdgeInsets.only(top: 20.0)
-                                    ),
-                                    Text("Or Scan The QR code",
-                                      style: new TextStyle(fontSize: 20.0,color: Colors.black,fontWeight: FontWeight.bold,fontFamily:'Lato'),
-                                    ),
-                                    new Padding(
-                                        padding: const EdgeInsets.only(top: 20.0)
-                                    ),
-                                    new FloatingActionButton.extended(
-                                      label: Text("Scan"),
-                                      icon: Icon(Icons.settings_overscan),
-                                      onPressed: () {
-                                        _scanQR();
-                                      },
-                                      tooltip: 'Scan the QRCode',
-
-                                    ),
-                                  ]
-                              )
                           )
-                      )
+                      ),
+
+                    ],
                   ),
 
                 ],
-              ),
+              )
+          ),
 
-            ],
-          )
-      ),
+        );
+      case AuthStatus.signedIn:
+        return new MyWebView(url: _flag,
+        );
 
-    );
+    }
+
   }
 
 }
