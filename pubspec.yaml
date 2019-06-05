@@ -26,6 +26,7 @@ dependencies:
   flutter_webview_plugin: ^0.3.5
   barcode_scan: ^1.0.0
   shared_preferences: ^0.5.3+1
+  webview_flutter: ^0.3.9+1
 
 
 dev_dependencies:

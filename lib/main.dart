@@ -3,7 +3,7 @@ import 'package:barcode_scan/barcode_scan.dart';
 import 'package:flutter/services.dart';
 import 'webView.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'menu.dart';
+
 void main() => runApp(MyApp());
 
 class MyApp extends StatelessWidget {
@@ -22,6 +22,7 @@ class MyApp extends StatelessWidget {
 }
 
 class MyHomePage extends StatefulWidget {
+
   MyHomePage({Key key, this.title}) : super(key: key);
   final String title;
 
@@ -42,7 +43,6 @@ class _MyHomePageState extends State<MyHomePage> {
   TextEditingController roomController;
   String _flag ;
   String result ;
-  final String savedUrl = 'first';
 
 
 
@@ -53,26 +53,33 @@ class _MyHomePageState extends State<MyHomePage> {
     roomController = new TextEditingController(text:"https://");
   }
 
-  clearUrl() async{
-    final SharedPreferences prefs = await SharedPreferences.getInstance();
-    prefs.remove(savedUrl);
-  }
-
-
 
   getUrl() async{
     final SharedPreferences prefs = await SharedPreferences.getInstance();
     String myUrl = prefs.getString("savedUrl") ?? 'null' ;
-    print("MY URL :$myUrl");
+//    print("MY URL :$myUrl");
     setState(() {
       _flag = myUrl;
     });
+
+//    print("FLAG: $_flag");
 
     if(_flag != 'null'){
       setState(() {
         authStatus = AuthStatus.signedIn;
       });
     }
+    else if(_flag == 'null'){
+      setState(() {
+        authStatus = AuthStatus.notSignedIn;
+      });
+    }
+  }
+
+
+
+  static Future<void> pop() async {
+    await SystemChannels.platform.invokeMethod<void>('SystemNavigator.pop');
   }
 
 
@@ -128,10 +135,12 @@ class _MyHomePageState extends State<MyHomePage> {
     switch(authStatus){
       case AuthStatus.notSignedIn:
 
-        return new Scaffold(
-
+        return new WillPopScope(
+          onWillPop: ()=> pop() ,
+          child:Scaffold(
           appBar: new AppBar(
             title: const Text('Sellacious'),
+            automaticallyImplyLeading: false,
           ),
 
           body: new Center(
@@ -234,6 +243,7 @@ class _MyHomePageState extends State<MyHomePage> {
               )
           ),
 
+        )
         );
       case AuthStatus.signedIn:
         return new MyWebView(url: _flag,
