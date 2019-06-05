@@ -27,6 +27,7 @@ dependencies:
   barcode_scan: ^1.0.0
   shared_preferences: ^0.5.3+1
   webview_flutter: ^0.3.9+1
+  firebase_messaging: ^5.0.2
 
 
 dev_dependencies:

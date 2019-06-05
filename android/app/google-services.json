@@ -1,0 +1,40 @@
+{
+  "project_info": {
+    "project_number": "225430655229",
+    "firebase_url": "https://sellacious-93906.firebaseio.com",
+    "project_id": "sellacious-93906",
+    "storage_bucket": "sellacious-93906.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:225430655229:android:8c536eaa0ad2b416",
+        "android_client_info": {
+          "package_name": "prkhrv.sellacious"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "225430655229-uidotn6ia8o3t94ml25o6huu19e95dpq.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBJNlkt15xohHW55BbOWi9fhfskXkKyMIE"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "225430655229-uidotn6ia8o3t94ml25o6huu19e95dpq.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

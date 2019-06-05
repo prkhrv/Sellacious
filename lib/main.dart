@@ -3,6 +3,7 @@ import 'package:barcode_scan/barcode_scan.dart';
 import 'package:flutter/services.dart';
 import 'webView.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
 
 void main() => runApp(MyApp());
 
@@ -43,12 +44,44 @@ class _MyHomePageState extends State<MyHomePage> {
   TextEditingController roomController;
   String _flag ;
   String result ;
+  final FirebaseMessaging _firebaseMessaging = FirebaseMessaging();
 
 
 
   @override
   void initState() {
     super.initState();
+
+    _firebaseMessaging.configure(
+      onLaunch: (Map<String,dynamic> msg){
+        print("onLaunch");
+
+      },
+      onResume: (Map<String,dynamic> msg){
+        print("onResume");
+      },
+      onMessage: (Map<String,dynamic> msg){
+        print("onMessage");
+      },
+    );
+
+    _firebaseMessaging.requestNotificationPermissions(
+        const IosNotificationSettings(
+            sound: true,
+            alert: true,
+            badge: true
+        )
+    );
+
+    _firebaseMessaging.onIosSettingsRegistered.listen((IosNotificationSettings setting){
+      print("IOS setting");
+    });
+
+    _firebaseMessaging.getToken().then((token){
+      print("Token: $token");
+    });
+
+
     getUrl();
     roomController = new TextEditingController(text:"https://");
   }
