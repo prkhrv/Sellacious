@@ -4,6 +4,7 @@ import 'package:flutter/services.dart';
 import 'webView.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
+import 'package:onesignal/onesignal.dart';
 
 void main() => runApp(MyApp());
 
@@ -46,11 +47,21 @@ class _MyHomePageState extends State<MyHomePage> {
   String result ;
   final FirebaseMessaging _firebaseMessaging = FirebaseMessaging();
 
+  String _debugLabelString = "";
+  String _emailAddress;
+  String _externalUserId;
+  bool _enableConsentButton = false;
+
+  bool _requireConsent = false;
+  
+
 
 
   @override
   void initState() {
     super.initState();
+
+    initPlatformState();
 
     _firebaseMessaging.configure(
       onLaunch: (Map<String,dynamic> msg){
@@ -84,6 +95,74 @@ class _MyHomePageState extends State<MyHomePage> {
 
     getUrl();
     roomController = new TextEditingController(text:"https://");
+  }
+
+
+  Future<void> initPlatformState() async {
+    if (!mounted) return;
+
+    OneSignal.shared.setLogLevel(OSLogLevel.verbose, OSLogLevel.none);
+
+    OneSignal.shared.setRequiresUserPrivacyConsent(_requireConsent);
+
+    OneSignal.shared.promptUserForPushNotificationPermission().then((accepted){
+      print("Accepted permission: $accepted");
+    });
+    var settings = {
+      OSiOSSettings.autoPrompt: false,
+      OSiOSSettings.promptBeforeOpeningPushUrl: true
+    };
+
+    OneSignal.shared.setNotificationReceivedHandler((notification) {
+      this.setState(() {
+        _debugLabelString =
+        "Received notification: \n${notification.jsonRepresentation().replaceAll("\\n", "\n")}";
+      });
+    });
+
+    OneSignal.shared
+        .setNotificationOpenedHandler((OSNotificationOpenedResult result) {
+
+
+          String payload = result.notification.payload.additionalData['targetUrl'];
+          if(result.notification.payload.additionalData.containsKey('targetUrl')){
+            _navigateToNotificationWebView(payload);
+
+          }
+          else{
+            print("HELLO WORLD #####");
+          }
+
+
+
+    });
+
+    OneSignal.shared
+        .setSubscriptionObserver((OSSubscriptionStateChanges changes) {
+      print("SUBSCRIPTION STATE CHANGED: ${changes.jsonRepresentation()}");
+    });
+
+    OneSignal.shared.setPermissionObserver((OSPermissionStateChanges changes) {
+      print("PERMISSION STATE CHANGED: ${changes.jsonRepresentation()}");
+    });
+
+    OneSignal.shared.setEmailSubscriptionObserver(
+            (OSEmailSubscriptionStateChanges changes) {
+          print("EMAIL SUBSCRIPTION STATE CHANGED ${changes.jsonRepresentation()}");
+        });
+
+    // NOTE: Replace with your own app ID from https://www.onesignal.com
+    await OneSignal.shared
+        .init("ebe55351-e7e2-4f00-899a-79479e6d13e0", iOSSettings: settings);
+
+    OneSignal.shared
+        .setInFocusDisplayType(OSNotificationDisplayType.notification);
+
+    bool requiresConsent = await OneSignal.shared.requiresUserPrivacyConsent();
+
+    this.setState(() {
+      _enableConsentButton = requiresConsent;
+    });
   }
 
 
@@ -124,6 +203,17 @@ class _MyHomePageState extends State<MyHomePage> {
   }
 
 
+
+  void _navigateToNotificationWebView(String url){
+
+    var route = new MaterialPageRoute(
+        builder: (BuildContext context)=>new MyWebView(url: url,)
+    );
+    Navigator.of(context).push(route);
+
+  }
+
+
   void _navigateToWebView(String url){
     setUrl(url);
     var route = new MaterialPageRoute(
@@ -158,8 +248,6 @@ class _MyHomePageState extends State<MyHomePage> {
         });
       }
     }
-
-
   }
 
   @override
